@@ -1,12 +1,11 @@
-import { User, InsertUser, Ride, InsertRide } from "@shared/schema";
+import { users, rides, type User, type InsertUser, type Ride, type InsertRide } from "@shared/schema";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getRides(): Promise<Ride[]>;
-  getRide(id: number): Promise<Ride | undefined>;
-  createRide(userId: number, ride: InsertRide): Promise<Ride>;
+  createRide(ride: InsertRide & { userId: number; departureTime: Date }): Promise<Ride>;
 }
 
 export class MemStorage implements IStorage {
@@ -28,7 +27,7 @@ export class MemStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
-      (user) => user.email === email
+      (user) => user.email === email,
     );
   }
 
@@ -43,15 +42,11 @@ export class MemStorage implements IStorage {
     return Array.from(this.rides.values());
   }
 
-  async getRide(id: number): Promise<Ride | undefined> {
-    return this.rides.get(id);
-  }
-
-  async createRide(userId: number, insertRide: InsertRide): Promise<Ride> {
+  async createRide(ride: InsertRide & { userId: number; departureTime: Date }): Promise<Ride> {
     const id = this.currentRideId++;
-    const ride: Ride = { ...insertRide, id, userId };
-    this.rides.set(id, ride);
-    return ride;
+    const newRide: Ride = { ...ride, id };
+    this.rides.set(id, newRide);
+    return newRide;
   }
 }
 

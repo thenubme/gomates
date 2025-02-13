@@ -2,7 +2,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocation } from "wouter";
-import { Form } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -57,45 +64,45 @@ export default function RegisterPage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit((data) => mutate(data))} className="space-y-4">
-          <Form.Field
+          <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
-              <Form.Item>
-                <Form.Label>Name</Form.Label>
-                <Form.Control>
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
                   <Input placeholder="Enter your name" {...field} />
-                </Form.Control>
-                <Form.Message />
-              </Form.Item>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
 
-          <Form.Field
+          <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
-              <Form.Item>
-                <Form.Label>Email</Form.Label>
-                <Form.Control>
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
                   <Input placeholder="Enter your email" {...field} />
-                </Form.Control>
-                <Form.Message />
-              </Form.Item>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
 
-          <Form.Field
+          <FormField
             control={form.control}
             name="password"
             render={({ field }) => (
-              <Form.Item>
-                <Form.Label>Password</Form.Label>
-                <Form.Control>
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
                   <Input type="password" placeholder="Enter your password" {...field} />
-                </Form.Control>
-                <Form.Message />
-              </Form.Item>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
 

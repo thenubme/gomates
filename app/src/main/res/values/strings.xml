@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GoMates</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="post_ride">Post a Ride</string>
+    <string name="view_rides">View Available Rides</string>
+    <string name="logout">Logout</string>
+    <string name="origin">Origin</string>
+    <string name="destination">Destination</string>
+    <string name="fare">Fare</string>
+</resources>

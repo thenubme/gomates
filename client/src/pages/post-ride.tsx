@@ -2,7 +2,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLocation } from "wouter";
-import { Form } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -31,10 +38,10 @@ export default function PostRidePage() {
     defaultValues: {
       origin: "",
       destination: "",
-      originLat: 0,
-      originLng: 0,
-      destinationLat: 0,
-      destinationLng: 0,
+      originLat: "0",
+      originLng: "0",
+      destinationLat: "0",
+      destinationLng: "0",
       fare: 0,
       seats: 1,
       departureTime: "",
@@ -82,10 +89,10 @@ export default function PostRidePage() {
       const originCoords = { lat: 12.9716, lng: 77.5946 };
       const destCoords = { lat: 13.0827, lng: 77.5877 };
 
-      form.setValue("originLat", originCoords.lat);
-      form.setValue("originLng", originCoords.lng);
-      form.setValue("destinationLat", destCoords.lat);
-      form.setValue("destinationLng", destCoords.lng);
+      form.setValue("originLat", originCoords.lat.toString());
+      form.setValue("originLng", originCoords.lng.toString());
+      form.setValue("destinationLat", destCoords.lat.toString());
+      form.setValue("destinationLng", destCoords.lng.toString());
 
       const url = getStaticMapUrl(originCoords, destCoords);
       setMapUrl(url);
@@ -105,13 +112,13 @@ export default function PostRidePage() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit((data) => mutate(data))} className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <Form.Field
+            <FormField
               control={form.control}
               name="origin"
               render={({ field }) => (
-                <Form.Item>
-                  <Form.Label>Origin</Form.Label>
-                  <Form.Control>
+                <FormItem>
+                  <FormLabel>Origin</FormLabel>
+                  <FormControl>
                     <Input 
                       placeholder="Enter pickup location"
                       {...field}
@@ -120,19 +127,19 @@ export default function PostRidePage() {
                         updateMap(e.target.value, form.getValues("destination"));
                       }}
                     />
-                  </Form.Control>
-                  <Form.Message />
-                </Form.Item>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
 
-            <Form.Field
+            <FormField
               control={form.control}
               name="destination"
               render={({ field }) => (
-                <Form.Item>
-                  <Form.Label>Destination</Form.Label>
-                  <Form.Control>
+                <FormItem>
+                  <FormLabel>Destination</FormLabel>
+                  <FormControl>
                     <Input 
                       placeholder="Enter drop-off location"
                       {...field}
@@ -141,9 +148,9 @@ export default function PostRidePage() {
                         updateMap(form.getValues("origin"), e.target.value);
                       }}
                     />
-                  </Form.Control>
-                  <Form.Message />
-                </Form.Item>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
           </div>
@@ -161,45 +168,45 @@ export default function PostRidePage() {
           )}
 
           <div className="grid gap-4 md:grid-cols-3">
-            <Form.Field
+            <FormField
               control={form.control}
               name="fare"
               render={({ field }) => (
-                <Form.Item>
-                  <Form.Label>Fare ($)</Form.Label>
-                  <Form.Control>
+                <FormItem>
+                  <FormLabel>Fare ($)</FormLabel>
+                  <FormControl>
                     <Input type="number" min="0" {...field} />
-                  </Form.Control>
-                  <Form.Message />
-                </Form.Item>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
 
-            <Form.Field
+            <FormField
               control={form.control}
               name="seats"
               render={({ field }) => (
-                <Form.Item>
-                  <Form.Label>Available Seats</Form.Label>
-                  <Form.Control>
+                <FormItem>
+                  <FormLabel>Available Seats</FormLabel>
+                  <FormControl>
                     <Input type="number" min="1" max="8" {...field} />
-                  </Form.Control>
-                  <Form.Message />
-                </Form.Item>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
 
-            <Form.Field
+            <FormField
               control={form.control}
               name="departureTime"
               render={({ field }) => (
-                <Form.Item>
-                  <Form.Label>Departure Time</Form.Label>
-                  <Form.Control>
+                <FormItem>
+                  <FormLabel>Departure Time</FormLabel>
+                  <FormControl>
                     <Input type="datetime-local" {...field} />
-                  </Form.Control>
-                  <Form.Message />
-                </Form.Item>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
           </div>

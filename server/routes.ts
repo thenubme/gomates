@@ -1,29 +1,26 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertRideSchema } from "@shared/schema";
+import { insertUserSchema } from "@shared/schema";
 import bcrypt from "bcryptjs";
 
 export function registerRoutes(app: Express): Server {
-  // Auth routes
+  // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const data = insertUserSchema.parse(req.body);
-      const existingUser = await storage.getUserByEmail(data.email);
-      
-      if (existingUser) {
-        return res.status(400).json({ error: "Email already exists" });
-      }
+      const parsed = insertUserSchema.parse(req.body);
+      const hashedPassword = await bcrypt.hash(parsed.password, 10);
 
-      const hashedPassword = await bcrypt.hash(data.password, 10);
       const user = await storage.createUser({
-        ...data,
+        ...parsed,
         password: hashedPassword
       });
 
-      res.json({ user: { id: user.id, email: user.email, name: user.name } });
-    } catch (error) {
-      res.status(400).json({ error: error.message });
+      // Don't send password back to client
+      const { password, ...userWithoutPassword } = user;
+      res.json({ user: userWithoutPassword });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
     }
   });
 
@@ -33,38 +30,38 @@ export function registerRoutes(app: Express): Server {
       const user = await storage.getUserByEmail(email);
 
       if (!user) {
-        return res.status(401).json({ error: "Invalid credentials" });
+        return res.status(401).json({ message: "Invalid email or password" });
       }
 
-      const validPassword = await bcrypt.compare(password, user.password);
-      if (!validPassword) {
-        return res.status(401).json({ error: "Invalid credentials" });
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) {
+        return res.status(401).json({ message: "Invalid email or password" });
       }
 
-      res.json({ user: { id: user.id, email: user.email, name: user.name } });
-    } catch (error) {
-      res.status(400).json({ error: error.message });
+      // Don't send password back to client
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({ user: userWithoutPassword });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
     }
   });
 
-  // Ride routes
-  app.get("/api/rides", async (req, res) => {
+  // Rides routes
+  app.get("/api/rides", async (_req, res) => {
     try {
       const rides = await storage.getRides();
       res.json(rides);
-    } catch (error) {
-      res.status(400).json({ error: error.message });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 
   app.post("/api/rides", async (req, res) => {
     try {
-      const userId = req.body.userId;
-      const data = insertRideSchema.parse(req.body);
-      const ride = await storage.createRide(userId, data);
+      const ride = await storage.createRide(req.body);
       res.json(ride);
-    } catch (error) {
-      res.status(400).json({ error: error.message });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
     }
   });
 
