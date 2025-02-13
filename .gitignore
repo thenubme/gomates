@@ -1,6 +1,44 @@
-node_modules
-dist
+# Node.js
+node_modules/
+dist/
 .DS_Store
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Android
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE specific files
+.vscode/
+*.swp
+*.swo
