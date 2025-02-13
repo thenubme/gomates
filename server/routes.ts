@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import path from "path";
 import { storage } from "./storage";
 import { insertUserSchema } from "@shared/schema";
 import bcrypt from "bcryptjs";
@@ -63,6 +64,12 @@ export function registerRoutes(app: Express): Server {
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
+  });
+
+  // Download checkpoint zip file
+  app.get("/download/mysql-checkpoint", (req, res) => {
+    const filePath = path.join(process.cwd(), "mysql_integration_checkpoint.zip");
+    res.download(filePath, "mysql_integration_checkpoint.zip");
   });
 
   const httpServer = createServer(app);
