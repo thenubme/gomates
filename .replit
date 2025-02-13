@@ -30,6 +30,10 @@ args = "Start application"
 task = "workflow.run"
 args = "Android project structure check"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Android Build"
+
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
@@ -58,3 +62,17 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "ls -R app/src/main/"
+
+[[workflows.workflow]]
+name = "Android Build"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./gradlew assembleDebug"
