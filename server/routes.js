@@ -7,7 +7,7 @@ const router = express.Router();
 // User registration
 router.post('/api/auth/register', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
 
     // Validate input
     if (!email || !password) {
@@ -25,13 +25,14 @@ router.post('/api/auth/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const userName = name || email.split('@')[0]; // Use name if provided, otherwise use email prefix
 
     const [result] = await pool.execute(
-      'INSERT INTO users (email, password) VALUES (?, ?)',
-      [email, hashedPassword]
+      'INSERT INTO users (email, password, name) VALUES (?, ?, ?)',
+      [email, hashedPassword, userName]
     );
 
-    res.json({ user: { id: result.insertId, email } });
+    res.json({ user: { id: result.insertId, email, name: userName } });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ message: 'Error during registration' });
