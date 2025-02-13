@@ -8,21 +8,22 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.auth.FirebaseAuth;
+import com.example.gomates.database.DatabaseHelper;
+import com.example.gomates.models.User;
 
 public class RegisterActivity extends AppCompatActivity {
     private EditText emailInput;
     private EditText passwordInput;
     private EditText confirmPasswordInput;
     private Button registerButton;
-    private FirebaseAuth mAuth;
+    private DatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        mAuth = FirebaseAuth.getInstance();
+        dbHelper = new DatabaseHelper(this);
 
         emailInput = findViewById(R.id.email_input);
         passwordInput = findViewById(R.id.password_input);
@@ -47,15 +48,34 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        startActivity(new Intent(RegisterActivity.this, MainActivity.class));
-                        finish();
-                    } else {
-                        Toast.makeText(RegisterActivity.this, "Registration failed",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+        // Check if user already exists
+        if (dbHelper.getUserByEmail(email) != null) {
+            Toast.makeText(this, "Email already registered", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Create new user
+        User newUser = new User();
+        newUser.setEmail(email);
+        newUser.setPassword(password);
+        newUser.setName(email.split("@")[0]); // Use part before @ as name
+
+        long userId = dbHelper.insertUser(newUser);
+        if (userId != -1) {
+            Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+            finish();
+        } else {
+            Toast.makeText(RegisterActivity.this, "Registration failed",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (dbHelper != null) {
+            dbHelper.close();
+        }
     }
 }
