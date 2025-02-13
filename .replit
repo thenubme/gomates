@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "web", "postgresql-16", "python-3.11"]
+modules = ["nodejs-20", "web", "postgresql-16", "python-3.11", "openjdk-17"]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
@@ -75,4 +75,4 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "./gradlew assembleDebug"
+args = "export JAVA_HOME=/nix/store/$(ls /nix/store | grep openjdk | grep -v debug | head -n1) && ./gradlew assembleDebug"
