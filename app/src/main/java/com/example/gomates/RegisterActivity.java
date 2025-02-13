@@ -1,6 +1,7 @@
 package com.example.gomates;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -8,22 +9,23 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.gomates.database.DatabaseHelper;
+import com.example.gomates.database.MySQLDatabaseHelper;
 import com.example.gomates.models.User;
+import com.example.gomates.utils.SessionManager;
 
 public class RegisterActivity extends AppCompatActivity {
     private EditText emailInput;
     private EditText passwordInput;
     private EditText confirmPasswordInput;
     private Button registerButton;
-    private DatabaseHelper dbHelper;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        dbHelper = new DatabaseHelper(this);
+        sessionManager = new SessionManager(this);
 
         emailInput = findViewById(R.id.email_input);
         passwordInput = findViewById(R.id.password_input);
@@ -48,34 +50,47 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Check if user already exists
-        if (dbHelper.getUserByEmail(email) != null) {
-            Toast.makeText(this, "Email already registered", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Create new user
-        User newUser = new User();
-        newUser.setEmail(email);
-        newUser.setPassword(password);
-        newUser.setName(email.split("@")[0]); // Use part before @ as name
-
-        long userId = dbHelper.insertUser(newUser);
-        if (userId != -1) {
-            Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(RegisterActivity.this, MainActivity.class));
-            finish();
-        } else {
-            Toast.makeText(RegisterActivity.this, "Registration failed",
-                    Toast.LENGTH_SHORT).show();
-        }
+        new RegisterTask().execute(email, password);
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (dbHelper != null) {
-            dbHelper.close();
+    private class RegisterTask extends AsyncTask<String, Void, Long> {
+        private String email;
+        private String password;
+
+        @Override
+        protected Long doInBackground(String... params) {
+            email = params[0];
+            password = params[1];
+
+            // Check if user already exists
+            if (MySQLDatabaseHelper.getUserByEmail(email) != null) {
+                return -2L; // User exists
+            }
+
+            // Create new user
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setPassword(password);
+            newUser.setName(email.split("@")[0]); // Use part before @ as name
+
+            return MySQLDatabaseHelper.insertUser(newUser);
+        }
+
+        @Override
+        protected void onPostExecute(Long result) {
+            if (result == -2) {
+                Toast.makeText(RegisterActivity.this, "Email already registered",
+                        Toast.LENGTH_SHORT).show();
+            } else if (result != -1) {
+                sessionManager.createLoginSession(String.valueOf(result), email);
+                Toast.makeText(RegisterActivity.this, "Registration successful",
+                        Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                finish();
+            } else {
+                Toast.makeText(RegisterActivity.this, "Registration failed",
+                        Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }
