@@ -8,6 +8,22 @@ const router = express.Router();
 router.post('/api/auth/register', async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    // Check if user already exists
+    const [existingUsers] = await pool.execute(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
+
+    if (existingUsers.length > 0) {
+      return res.status(400).json({ message: 'Email already registered' });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [result] = await pool.execute(
@@ -26,6 +42,12 @@ router.post('/api/auth/register', async (req, res) => {
 router.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
     const [users] = await pool.execute(
       'SELECT * FROM users WHERE email = ?',
       [email]
@@ -64,11 +86,17 @@ router.get('/api/rides', async (req, res) => {
 router.post('/api/rides', async (req, res) => {
   try {
     const { origin, destination, fare, userId, departureTime } = req.body;
+
+    // Validate input
+    if (!origin || !destination || !fare || !userId || !departureTime) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
     const [result] = await pool.execute(
       'INSERT INTO rides (origin, destination, fare, user_id, departure_time) VALUES (?, ?, ?, ?, ?)',
       [origin, destination, fare, userId, departureTime]
     );
-    
+
     const [ride] = await pool.execute('SELECT * FROM rides WHERE id = ?', [result.insertId]);
     res.json(ride[0]);
   } catch (error) {
