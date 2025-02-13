@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.gomates.adapters.RideAdapter;
 import com.example.gomates.models.Ride;
-import com.example.gomates.database.MySQLHelper;
+import com.example.gomates.database.MySQLDatabaseHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +38,7 @@ public class RideListActivity extends AppCompatActivity implements RideAdapter.O
     private class LoadRidesTask extends AsyncTask<Void, Void, List<Ride>> {
         @Override
         protected List<Ride> doInBackground(Void... voids) {
-            return MySQLHelper.getAllRides();
+            return MySQLDatabaseHelper.getAllRides();
         }
 
         @Override

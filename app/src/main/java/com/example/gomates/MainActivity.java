@@ -1,4 +1,3 @@
-
 package com.example.gomates;
 
 import android.content.Intent;
@@ -8,14 +7,14 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.example.gomates.database.MySQLHelper;
+import com.example.gomates.database.MySQLDatabaseHelper;
+import com.example.gomates.utils.SessionManager;
 
 public class MainActivity extends AppCompatActivity {
     private Button postRideButton;
     private Button viewRidesButton;
     private Button logoutButton;
-    private FirebaseAuth mAuth;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,12 +25,19 @@ public class MainActivity extends AppCompatActivity {
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
-                MySQLHelper.initializeDatabase();
+                MySQLDatabaseHelper.initializeDatabase();
                 return null;
             }
         }.execute();
 
-        mAuth = FirebaseAuth.getInstance();
+        sessionManager = new SessionManager(this);
+
+        // Check if user is logged in
+        if (!sessionManager.isLoggedIn()) {
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+            finish();
+            return;
+        }
 
         postRideButton = findViewById(R.id.post_ride_button);
         viewRidesButton = findViewById(R.id.view_rides_button);
@@ -44,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(MainActivity.this, RideListActivity.class)));
 
         logoutButton.setOnClickListener(v -> {
-            mAuth.signOut();
+            sessionManager.logout();
             startActivity(new Intent(MainActivity.this, LoginActivity.class));
             finish();
         });

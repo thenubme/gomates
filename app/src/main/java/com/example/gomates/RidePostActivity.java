@@ -9,23 +9,22 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.gomates.models.Ride;
-import com.example.gomates.database.MySQLHelper;
-import com.google.firebase.auth.FirebaseAuth;
+import com.example.gomates.database.MySQLDatabaseHelper;
+import com.example.gomates.utils.SessionManager;
 
 public class RidePostActivity extends AppCompatActivity {
     private EditText originInput;
     private EditText destinationInput;
     private EditText fareInput;
     private Button postButton;
-
-    private FirebaseAuth mAuth;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ride_post);
 
-        mAuth = FirebaseAuth.getInstance();
+        sessionManager = new SessionManager(this);
 
         originInput = findViewById(R.id.origin_input);
         destinationInput = findViewById(R.id.destination_input);
@@ -46,7 +45,7 @@ public class RidePostActivity extends AppCompatActivity {
         }
 
         double fare = Double.parseDouble(fareStr);
-        String driverId = mAuth.getCurrentUser().getUid();
+        String driverId = sessionManager.getUserId();
 
         Ride ride = new Ride(origin, destination, fare, driverId);
         new PostRideTask().execute(ride);
@@ -55,7 +54,7 @@ public class RidePostActivity extends AppCompatActivity {
     private class PostRideTask extends AsyncTask<Ride, Void, Long> {
         @Override
         protected Long doInBackground(Ride... rides) {
-            return MySQLHelper.insertRide(rides[0]);
+            return MySQLDatabaseHelper.insertRide(rides[0]);
         }
 
         @Override
