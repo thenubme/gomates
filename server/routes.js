@@ -44,7 +44,6 @@ router.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate input
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
@@ -72,10 +71,16 @@ router.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Get all rides
+// Get all available rides
 router.get('/api/rides', async (req, res) => {
   try {
-    const [rides] = await pool.execute('SELECT * FROM rides ORDER BY departure_time DESC');
+    const [rides] = await pool.execute(`
+      SELECT r.*, u.name as driver_name 
+      FROM rides r
+      JOIN users u ON r.user_id = u.id
+      WHERE r.departure_time > NOW()
+      ORDER BY r.departure_time ASC
+    `);
     res.json(rides);
   } catch (error) {
     console.error('Error fetching rides:', error);
@@ -83,26 +88,116 @@ router.get('/api/rides', async (req, res) => {
   }
 });
 
+// Get rides posted by a specific user
+router.get('/api/rides/user/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const [rides] = await pool.execute(`
+      SELECT r.*, u.name as driver_name 
+      FROM rides r
+      JOIN users u ON r.user_id = u.id
+      WHERE r.user_id = ?
+      ORDER BY r.departure_time DESC
+    `, [userId]);
+    res.json(rides);
+  } catch (error) {
+    console.error('Error fetching user rides:', error);
+    res.status(500).json({ message: 'Error fetching user rides' });
+  }
+});
+
 // Post a new ride
 router.post('/api/rides', async (req, res) => {
   try {
-    const { origin, destination, fare, userId, departureTime } = req.body;
+    const { origin, destination, departureTime, fare, availableSeats, userId } = req.body;
 
     // Validate input
-    if (!origin || !destination || !fare || !userId || !departureTime) {
+    if (!origin || !destination || !departureTime || !fare || !userId) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
     const [result] = await pool.execute(
-      'INSERT INTO rides (origin, destination, fare, user_id, departure_time) VALUES (?, ?, ?, ?, ?)',
-      [origin, destination, fare, userId, departureTime]
+      'INSERT INTO rides (origin, destination, departure_time, fare, available_seats, user_id) VALUES (?, ?, ?, ?, ?, ?)',
+      [origin, destination, departureTime, fare, availableSeats || 4, userId]
     );
 
-    const [ride] = await pool.execute('SELECT * FROM rides WHERE id = ?', [result.insertId]);
+    const [ride] = await pool.execute(
+      `SELECT r.*, u.name as driver_name 
+       FROM rides r
+       JOIN users u ON r.user_id = u.id
+       WHERE r.id = ?`,
+      [result.insertId]
+    );
+
     res.json(ride[0]);
   } catch (error) {
     console.error('Error posting ride:', error);
     res.status(500).json({ message: 'Error posting ride' });
+  }
+});
+
+// Update a ride
+router.put('/api/rides/:rideId', async (req, res) => {
+  try {
+    const { rideId } = req.params;
+    const { origin, destination, departureTime, fare, availableSeats, userId } = req.body;
+
+    // Validate input
+    if (!origin || !destination || !departureTime || !fare || !userId) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Check if the ride belongs to the user
+    const [existingRide] = await pool.execute(
+      'SELECT * FROM rides WHERE id = ? AND user_id = ?',
+      [rideId, userId]
+    );
+
+    if (existingRide.length === 0) {
+      return res.status(403).json({ message: 'Not authorized to update this ride' });
+    }
+
+    await pool.execute(
+      'UPDATE rides SET origin = ?, destination = ?, departure_time = ?, fare = ?, available_seats = ? WHERE id = ?',
+      [origin, destination, departureTime, fare, availableSeats, rideId]
+    );
+
+    const [updatedRide] = await pool.execute(
+      `SELECT r.*, u.name as driver_name 
+       FROM rides r
+       JOIN users u ON r.user_id = u.id
+       WHERE r.id = ?`,
+      [rideId]
+    );
+
+    res.json(updatedRide[0]);
+  } catch (error) {
+    console.error('Error updating ride:', error);
+    res.status(500).json({ message: 'Error updating ride' });
+  }
+});
+
+// Delete a ride
+router.delete('/api/rides/:rideId', async (req, res) => {
+  try {
+    const { rideId } = req.params;
+    const { userId } = req.body;
+
+    // Check if the ride belongs to the user
+    const [existingRide] = await pool.execute(
+      'SELECT * FROM rides WHERE id = ? AND user_id = ?',
+      [rideId, userId]
+    );
+
+    if (existingRide.length === 0) {
+      return res.status(403).json({ message: 'Not authorized to delete this ride' });
+    }
+
+    await pool.execute('DELETE FROM rides WHERE id = ?', [rideId]);
+    res.json({ message: 'Ride deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting ride:', error);
+    res.status(500).json({ message: 'Error deleting ride' });
   }
 });
 
