@@ -7,13 +7,7 @@ public class User {
     private String name;
 
     public User() {
-    }
-
-    public User(String id, String email, String password, String name) {
-        this.id = id;
-        this.email = email;
-        this.password = password;
-        this.name = name;
+        // Required empty constructor
     }
 
     // Getters and setters

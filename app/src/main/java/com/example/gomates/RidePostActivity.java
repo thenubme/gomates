@@ -5,7 +5,6 @@ import android.os.AsyncTask;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.gomates.models.Ride;
@@ -28,6 +27,7 @@ public class RidePostActivity extends AppCompatActivity {
 
         sessionManager = new SessionManager(this);
 
+        // Initialize views
         originInput = findViewById(R.id.origin_input);
         destinationInput = findViewById(R.id.destination_input);
         fareInput = findViewById(R.id.fare_input);
@@ -45,6 +45,7 @@ public class RidePostActivity extends AppCompatActivity {
         String seatsStr = seatsInput.getText().toString().trim();
         String departureTime = departureTimeInput.getText().toString().trim();
 
+        // Validate inputs
         if (origin.isEmpty() || destination.isEmpty() || fareStr.isEmpty() || 
             seatsStr.isEmpty() || departureTime.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
@@ -74,7 +75,12 @@ public class RidePostActivity extends AppCompatActivity {
     private class PostRideTask extends AsyncTask<Ride, Void, Long> {
         @Override
         protected Long doInBackground(Ride... rides) {
-            return MySQLDatabaseHelper.insertRide(rides[0]);
+            try {
+                return MySQLDatabaseHelper.insertRide(rides[0]);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return -1L;
+            }
         }
 
         @Override

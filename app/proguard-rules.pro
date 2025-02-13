@@ -42,5 +42,10 @@
 -keep class org.sqlite.** { *; }
 -keep class org.sqlite.database.** { *; }
 
+# MySQL Connector
+-keep class com.mysql.** { *; }
+-keepclassmembers class com.mysql.** { *; }
+-dontwarn com.mysql.**
+
 # Keep your model classes
 -keep class com.example.gomates.models.** { *; }
