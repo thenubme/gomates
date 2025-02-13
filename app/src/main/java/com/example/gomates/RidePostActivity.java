@@ -16,6 +16,8 @@ public class RidePostActivity extends AppCompatActivity {
     private EditText originInput;
     private EditText destinationInput;
     private EditText fareInput;
+    private EditText seatsInput;
+    private EditText departureTimeInput;
     private Button postButton;
     private SessionManager sessionManager;
 
@@ -29,6 +31,8 @@ public class RidePostActivity extends AppCompatActivity {
         originInput = findViewById(R.id.origin_input);
         destinationInput = findViewById(R.id.destination_input);
         fareInput = findViewById(R.id.fare_input);
+        seatsInput = findViewById(R.id.seats_input);
+        departureTimeInput = findViewById(R.id.departure_time_input);
         postButton = findViewById(R.id.post_button);
 
         postButton.setOnClickListener(v -> postRide());
@@ -38,17 +42,33 @@ public class RidePostActivity extends AppCompatActivity {
         String origin = originInput.getText().toString().trim();
         String destination = destinationInput.getText().toString().trim();
         String fareStr = fareInput.getText().toString().trim();
+        String seatsStr = seatsInput.getText().toString().trim();
+        String departureTime = departureTimeInput.getText().toString().trim();
 
-        if (origin.isEmpty() || destination.isEmpty() || fareStr.isEmpty()) {
+        if (origin.isEmpty() || destination.isEmpty() || fareStr.isEmpty() || 
+            seatsStr.isEmpty() || departureTime.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        double fare = Double.parseDouble(fareStr);
-        String driverId = sessionManager.getUserId();
+        try {
+            double fare = Double.parseDouble(fareStr);
+            int seats = Integer.parseInt(seatsStr);
+            int userId = Integer.parseInt(sessionManager.getUserId());
 
-        Ride ride = new Ride(origin, destination, fare, driverId);
-        new PostRideTask().execute(ride);
+            Ride ride = new Ride();
+            ride.setOrigin(origin);
+            ride.setDestination(destination);
+            ride.setFare(fare);
+            ride.setAvailableSeats(seats);
+            ride.setDepartureTime(departureTime);
+            ride.setUserId(userId);
+
+            new PostRideTask().execute(ride);
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "Please enter valid numbers for fare and seats", 
+                         Toast.LENGTH_SHORT).show();
+        }
     }
 
     private class PostRideTask extends AsyncTask<Ride, Void, Long> {

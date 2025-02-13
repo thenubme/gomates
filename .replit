@@ -75,4 +75,4 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "export JAVA_HOME=/nix/store/$(ls /nix/store | grep openjdk | grep -v debug | head -n1) && ./gradlew assembleDebug"
+args = "export JAVA_HOME=/nix/store/$(ls /nix/store | grep openjdk17 | grep -v debug | head -n1) && ./gradlew assembleDebug"

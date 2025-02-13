@@ -14,42 +14,45 @@ import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "GoMatesDB";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 1;
 
     // Table names
-    private static final String TABLE_RIDES = "rides";
     private static final String TABLE_USERS = "users";
+    private static final String TABLE_RIDES = "rides";
 
     // Common column names
     private static final String KEY_ID = "id";
 
-    // Users table columns
+    // Users Table Columns
     private static final String KEY_EMAIL = "email";
     private static final String KEY_PASSWORD = "password";
     private static final String KEY_NAME = "name";
 
-    // Rides table columns
+    // Rides Table Columns
     private static final String KEY_ORIGIN = "origin";
     private static final String KEY_DESTINATION = "destination";
+    private static final String KEY_DEPARTURE_TIME = "departure_time";
     private static final String KEY_FARE = "fare";
-    private static final String KEY_DRIVER_ID = "driver_id";
-    private static final String KEY_TIMESTAMP = "timestamp";
+    private static final String KEY_AVAILABLE_SEATS = "available_seats";
+    private static final String KEY_USER_ID = "user_id";
 
     // Create table statements
     private static final String CREATE_USERS_TABLE = "CREATE TABLE " + TABLE_USERS + "("
             + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-            + KEY_EMAIL + " TEXT UNIQUE,"
-            + KEY_PASSWORD + " TEXT,"
-            + KEY_NAME + " TEXT"
+            + KEY_EMAIL + " TEXT UNIQUE NOT NULL,"
+            + KEY_PASSWORD + " TEXT NOT NULL,"
+            + KEY_NAME + " TEXT NOT NULL"
             + ")";
 
     private static final String CREATE_RIDES_TABLE = "CREATE TABLE " + TABLE_RIDES + "("
             + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-            + KEY_ORIGIN + " TEXT,"
-            + KEY_DESTINATION + " TEXT,"
-            + KEY_FARE + " REAL,"
-            + KEY_DRIVER_ID + " TEXT,"
-            + KEY_TIMESTAMP + " TEXT"
+            + KEY_ORIGIN + " TEXT NOT NULL,"
+            + KEY_DESTINATION + " TEXT NOT NULL,"
+            + KEY_DEPARTURE_TIME + " TEXT NOT NULL,"
+            + KEY_FARE + " REAL NOT NULL,"
+            + KEY_AVAILABLE_SEATS + " INTEGER NOT NULL,"
+            + KEY_USER_ID + " INTEGER NOT NULL,"
+            + "FOREIGN KEY(" + KEY_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + KEY_ID + ")"
             + ")";
 
     public DatabaseHelper(Context context) {
@@ -64,14 +67,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Drop older tables if existed
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_RIDES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
-        // Create tables again
         onCreate(db);
     }
 
-    // User CRUD Operations
+    // User operations
     public long insertUser(User user) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -102,15 +103,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return user;
     }
 
-    // Existing Ride CRUD Operations remain unchanged
+    // Ride operations
     public long insertRide(Ride ride) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_ORIGIN, ride.getOrigin());
         values.put(KEY_DESTINATION, ride.getDestination());
+        values.put(KEY_DEPARTURE_TIME, ride.getDepartureTime());
         values.put(KEY_FARE, ride.getFare());
-        values.put(KEY_DRIVER_ID, ride.getDriverId());
-        values.put(KEY_TIMESTAMP, ride.getTimestamp());
+        values.put(KEY_AVAILABLE_SEATS, ride.getAvailableSeats());
+        values.put(KEY_USER_ID, ride.getUserId());
 
         long id = db.insert(TABLE_RIDES, null, values);
         db.close();
@@ -119,7 +121,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public List<Ride> getAllRides() {
         List<Ride> rides = new ArrayList<>();
-        String selectQuery = "SELECT * FROM " + TABLE_RIDES + " ORDER BY " + KEY_TIMESTAMP + " DESC";
+        String selectQuery = "SELECT r.*, u." + KEY_NAME + " as driver_name FROM " + TABLE_RIDES + " r"
+                + " INNER JOIN " + TABLE_USERS + " u ON r." + KEY_USER_ID + " = u." + KEY_ID
+                + " ORDER BY " + KEY_DEPARTURE_TIME + " DESC";
 
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -130,9 +134,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 ride.setId(cursor.getString(cursor.getColumnIndex(KEY_ID)));
                 ride.setOrigin(cursor.getString(cursor.getColumnIndex(KEY_ORIGIN)));
                 ride.setDestination(cursor.getString(cursor.getColumnIndex(KEY_DESTINATION)));
+                ride.setDepartureTime(cursor.getString(cursor.getColumnIndex(KEY_DEPARTURE_TIME)));
                 ride.setFare(cursor.getDouble(cursor.getColumnIndex(KEY_FARE)));
-                ride.setDriverId(cursor.getString(cursor.getColumnIndex(KEY_DRIVER_ID)));
-                ride.setTimestamp(cursor.getString(cursor.getColumnIndex(KEY_TIMESTAMP)));
+                ride.setAvailableSeats(cursor.getInt(cursor.getColumnIndex(KEY_AVAILABLE_SEATS)));
+                ride.setUserId(cursor.getInt(cursor.getColumnIndex(KEY_USER_ID)));
+                ride.setDriverName(cursor.getString(cursor.getColumnIndex("driver_name")));
                 rides.add(ride);
             } while (cursor.moveToNext());
         }
@@ -145,7 +151,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public Ride getRide(String id) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_RIDES, null, KEY_ID + "=?",
-                new String[]{id}, null, null, null, null);
+                new String[]{id}, null, null, null);
 
         Ride ride = null;
         if (cursor != null && cursor.moveToFirst()) {
@@ -153,9 +159,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             ride.setId(cursor.getString(cursor.getColumnIndex(KEY_ID)));
             ride.setOrigin(cursor.getString(cursor.getColumnIndex(KEY_ORIGIN)));
             ride.setDestination(cursor.getString(cursor.getColumnIndex(KEY_DESTINATION)));
+            ride.setDepartureTime(cursor.getString(cursor.getColumnIndex(KEY_DEPARTURE_TIME)));
             ride.setFare(cursor.getDouble(cursor.getColumnIndex(KEY_FARE)));
-            ride.setDriverId(cursor.getString(cursor.getColumnIndex(KEY_DRIVER_ID)));
-            ride.setTimestamp(cursor.getString(cursor.getColumnIndex(KEY_TIMESTAMP)));
+            ride.setAvailableSeats(cursor.getInt(cursor.getColumnIndex(KEY_AVAILABLE_SEATS)));
+            ride.setUserId(cursor.getInt(cursor.getColumnIndex(KEY_USER_ID)));
             cursor.close();
         }
         db.close();
@@ -167,19 +174,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(KEY_ORIGIN, ride.getOrigin());
         values.put(KEY_DESTINATION, ride.getDestination());
+        values.put(KEY_DEPARTURE_TIME, ride.getDepartureTime());
         values.put(KEY_FARE, ride.getFare());
-        values.put(KEY_DRIVER_ID, ride.getDriverId());
-        values.put(KEY_TIMESTAMP, ride.getTimestamp());
+        values.put(KEY_AVAILABLE_SEATS, ride.getAvailableSeats());
 
-        int rowsAffected = db.update(TABLE_RIDES, values, KEY_ID + "=?",
-                new String[]{String.valueOf(ride.getId())});
+        int rowsAffected = db.update(TABLE_RIDES, values, KEY_ID + "=? AND " + KEY_USER_ID + "=?",
+                new String[]{String.valueOf(ride.getId()), String.valueOf(ride.getUserId())});
         db.close();
         return rowsAffected;
     }
 
-    public void deleteRide(String id) {
+    public void deleteRide(String id, int userId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_RIDES, KEY_ID + "=?", new String[]{id});
+        db.delete(TABLE_RIDES, KEY_ID + "=? AND " + KEY_USER_ID + "=?",
+                new String[]{id, String.valueOf(userId)});
         db.close();
     }
 }
