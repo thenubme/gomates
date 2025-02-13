@@ -1,0 +1,43 @@
+I'm building an Android app named GoMates, a carpool app for a hackathon. The app should include the following functionalities:
+
+Core Features:
+
+User Authentication:
+LoginActivity: Allow users to sign in using email and password.
+RegisterActivity: Allow users to register with email and password.
+Use Firebase Authentication for handling login/registration.
+Main Dashboard:
+MainActivity: After logging in, the user should see a dashboard with options to post a ride or view available rides.
+Ride Posting & Listing:
+RidePostActivity: A screen where users can post ride details including origin, destination, and fare.
+RideListActivity: A screen that lists all available rides, using a RecyclerView with a custom adapter and ride_item layout.
+Store ride details in Firebase Firestore.
+Static Map Integration:
+StaticMapActivity (or integrate into another activity): Display a static map image using Google’s Static Maps API.
+Use Glide to load the static map image.
+The static map URL should include:
+Center coordinates (e.g., latitude 12.9716, longitude 77.5946)
+Zoom level 13
+Size 600x300 pixels
+A marker at the center with a label "A"
+An API key placeholder (e.g., YOUR_API_KEY_HERE) that I will replace with my actual key.
+Layout Files Required:
+
+activity_login.xml for LoginActivity.
+activity_register.xml for RegisterActivity.
+activity_main.xml for MainActivity.
+activity_ride_post.xml for RidePostActivity.
+activity_ride_list.xml for RideListActivity.
+ride_item.xml for each ride in the list.
+activity_static_map.xml (if using a separate activity for the map) with an ImageView.
+Other Requirements:
+
+Include necessary entries in AndroidManifest.xml, like the internet permission.
+Provide necessary Gradle dependencies (e.g., Firebase Authentication, Firebase Firestore, Glide).
+Use Java as the programming language.
+Output:
+
+Complete Java code for each activity.
+XML layout files for the mentioned activities.
+A sample configuration for AndroidManifest.xml and the Gradle build files.
+Please generate the full code and configurations for this project.
